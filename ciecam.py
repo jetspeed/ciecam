@@ -31,6 +31,13 @@ Nc = 0.95
 XYZ = np.array([X, Y, Z]).reshape(-1, 1)
 XYZw = np.array([Xw, Yw, Zw]).reshape(-1, 1)
 
+def convert(x, y, z):
+	"""docstring for convert"""
+	X = x+1
+	Y = y -1
+	Z = z
+	return X, Y, Z
+	
 def first(xyz):
 	"""compute LMS and LMSw"""
 	LMS = np.dot(Mcat02, xyz)
@@ -47,8 +54,8 @@ def third(lms):
 	#YwD = np.array([2, 4, 5.0]).reshape(-1, 1)
 	D = second()
 	YwD = Yw * D
-	LMSw = first_step(XYZw)
-	LMS = first_step(XYZ)
+	LMSw = first(XYZw)
+	LMS = first(XYZ)
 	
 	alpha =  YwD / LMSw + ( 1 - D )
 	print 'in 3, alpha: \n', alpha 
@@ -128,7 +135,7 @@ def twelfth():
 	Q = (4 * 1.0 / c) * sqrt(J / 100.0) * (Aw + 4) * Fl ** 0.25
 	return Q
 def thirteenth():
-	s = senventh()
+	s = seventh()
 	a, b = s["a"], s["b"]
 	Lhpea, Mhpea, Shpea = abstractLMS(computeLMShpea(XYZ))
 	t = e * (a ** 2 + b ** 2) ** 0.5 / (Lhpea + Mhpea + (21.0/20)* Shpea)
@@ -159,9 +166,12 @@ def abstractLMS(lmshpea):
 	return lmshpea[0][0], lmshpea[1][0], lmshpea[2][0]	
 		
 def main():
-	first(XYZ)
-	second()
+    # first(XYZ)
+	# second()
 	# third()
+	# print "S is :", sixteenth()
+	# print 'hello world'
+	print convert(1,2,3)
 
 if __name__ == '__main__':
 	main()

@@ -312,7 +312,7 @@ def main():
         #print leftJ, rightJ, leftM, rightM, lefth, righth
 
         deltaE = DeltaE(Kl, C1, C2, leftJ, rightJ, leftM, rightM, lefth, righth)
-        print i, deltaE.deltaE()
+        print deltaE.deltaE()
             
 if __name__ == '__main__':
     main()

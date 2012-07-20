@@ -16,7 +16,7 @@ import numpy as np
 from math import e, pi, sqrt, atan, cos, log, sin
 
 Mcat02 = np.array([[0.7328,  0.4296, -0.1624],
-    [-0.7036, 1.6975, 0.0061],
+    [-0.7036, 1.6974, 0.0061],
     [0.0030,  0.0136, 0.9834]])
 MHPE   = np.array([[0.38971,  0.68898, -0.07868],
     [-0.22981, 1.18340, 0.04641],
@@ -55,7 +55,8 @@ class CieCam02:
         self.XYZw = self.toXYZ(xyzw)
 
     def toXYZ(self, arr):
-        return np.array(arr).reshape(-1, 1)
+        out = np.array(arr).reshape(-1, 1)
+        return out
 
     def first(self, xyz):
         """compute LMS and LMSw"""
@@ -65,19 +66,18 @@ class CieCam02:
     def second(self):
         """computing D"""
         D = F * (1 - 1/3.6 * e ** ( -1 * (42 + La) / 92) )
-        #print 'D: \n', D
+        # print 'D: \n', D
+        # D = 0.6
         return D
     def third(self, lms):
         """compute LMSc and LMSwc"""
         D = self.second()
         YwD = self.Yw * D
         LMSw = self.first(self.XYZw)
-        LMS = self.first(self.XYZ)
 
         alpha =  YwD / LMSw + ( 1 - D )
-        #print 'in 3, alpha: \n', alpha
-        #print 'in 3, LMS: \n', lms
-        #print alpha * lms
+
+        # print "YwD", alpha, lms, alpha * lms
 
         LMSc = alpha * lms
         return LMSc
@@ -98,23 +98,24 @@ class CieCam02:
         """if L M S negative, use abs"""
         Fl = self.fourth()['Fl']
         c = (Fl * abs(lmshpe) / 100) ** 0.42
+        # print c
         LMShpea = 400 * c / (27.13 + c) + 0.1
-        return LMShpea * (lmshpe/abs(lmshpe))
+        # print LMShpea
+        return LMShpea * (lmshpe/abs(lmshpe)) 
     def seventh(self):
         """计算笛卡儿坐标a,b和色调h,should use LMShpea in sixth step"""
-        # LMShpea = sixth(fifth(third(first(XYZ))))
-        LMShpea = self.computeLMShpea(self.XYZ)
-        Lhpea, Mhpea, Shpea = LMShpea[0][0], LMShpea[1][0], LMShpea[2][0]
+        LMSa = self.computeLMSa(self.XYZ)
+        Lhpea, Mhpea, Shpea = LMSa[0][0], LMSa[1][0], LMSa[2][0]
         a = Lhpea - 12.0 * Mhpea / 11 + Shpea / 11
         b = (1.0/9) * (Lhpea + Mhpea - 2 * Shpea)
         h = atan(b * 1.0 / a) * 180 / pi
         return {"a":a, "b":b, "h":h}
     def eighth(self):
         """not same as wikipedia,计算偏心因子e"""
-        Ncb = fourth()['Ncb']
-        h = seventh()["h"]
-        e = (12500.0/13 * Nc * Ncb) * ((cos(h * pi/ 180) + 2) + 3.8)
-        return e
+        Ncb = self.fourth()['Ncb']
+        h = self.seventh()["h"]
+        eh = (12500.0/13 * Nc * Ncb) * (cos(h * pi/ 180 + 2) + 3.8)
+        return eh
 
     def ninth(self):
         """计算色调H"""
@@ -122,6 +123,7 @@ class CieCam02:
         earray = (0.8, 0.7, 1.0, 1.2, 0.8)
         Harray = (0.0, 100.0, 200.0, 300.0, 400.0)
         h = self.seventh()["h"]
+        print "h", h
         i = 0
         # find i
         for index, value in enumerate(harray):
@@ -155,7 +157,7 @@ class CieCam02:
         s = self.seventh()
         a, b = s["a"], s["b"]
         Lhpea, Mhpea, Shpea = self.abstractLMS(self.computeLMShpea(self.XYZ))
-        t = e * (a ** 2 + b ** 2) ** 0.5 / (Lhpea + Mhpea + (21.0/20)* Shpea)
+        t = self.eighth() * (a ** 2 + b ** 2) ** 0.5 / (Lhpea + Mhpea + (21.0/20)* Shpea)
         return t
     def fourteenth(self):
         """计算彩度C"""
@@ -176,6 +178,10 @@ class CieCam02:
         Q = self.twelfth()
         S = 100 * sqrt(M * 1.0 / Q)
         return S
+    def computeLMSa(self, xyz):
+        LMSa = self.sixth(self.first(xyz))
+        return LMSa
+
     def computeLMShpea(self, xyz):
         LMShpea = self.sixth(self.fifth(self.third(self.first(xyz))))
         return LMShpea
@@ -216,11 +222,15 @@ def main():
     for i in range(35):
         r = ReadXls()
         left = r.read(i)[0:3]
+        # print left
         right = r.read(i)[3:6]
+        # print right
         xyz_left = util.computeXYZ(left)
         xyz_right = util.computeXYZ(right)
+        # print xyz_left, xyz_right
 
-        xyzw = util.computeXYZ((81.9550, 0.311466667, 0.3311))
+        xyzw = util.computeXYZ((81.9550, 0.311466667, 0.33108))
+        # print xyzw
 
 
         Kl, C1, C2 = 0.77, 0.007, 0.0053
